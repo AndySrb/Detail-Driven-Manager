@@ -9,23 +9,12 @@ terraform {
 
 provider "docker" {}
 
-
 resource "docker_image" "mysql" {
-    name         = "mysql"
+    name         = "mysql:8.0.40-bookworm"
     keep_locally = true
 }
 
-resource "docker_image" "postgres" {
-    name         = "postgres"
-    keep_locally = true
-}
-
-resource "docker_image" "psql" {
-  name         = "alpine/psql:latest"
-  keep_locally = true
-}
-
-#DOCKER IMAGE AS FILE COMPANY FILE DOCKER
+#DOCKER IMAGE IN DOCKER REPO - TO ADD
 /*
 resource "docker_image" "flask" {
   name         = "flask"
@@ -36,16 +25,15 @@ resource "docker_image" "flask" {
 
 ## AS LOCAL DOCKER IMAGE
 data "docker_image" "local_image" {
-  name = "flask:0.0.2"
+  name = "flask"
 }
 
 resource "docker_container" "flask" {
 
-  name  = "FlasAppExaple"
-
+  name  = "FlaskAppExaple"
   #DOCKER IMAGE AS FILE COMPANY FILE DOCKER
   #image = "flask"
-	#DOCKER IMAGE AS LOCAL FILE
+	#DOCKER IMAGE AS LOCAL DOCKER FILE
   image = data.docker_image.local_image.name
 
   ports {
@@ -56,22 +44,26 @@ resource "docker_container" "flask" {
   }
 }
 
-resource "docker_container" "postgres" {
-image = docker_image.postgres.image_id
-name  = "postgres"
+resource "docker_container" "mysql" {
+image = docker_image.mysql.image_id
+name  = "MySQL_Database"
 
   ports {
-    internal = 81
-    external = 8081
+    internal = 3306
+    external = 3306
   }
 
 mounts {
-    target = "/var/lib/postgresql/data"
-    source = "/home/andy/Media/CS/SysAdmin/DetailDrivenManager/pgData"
+    target = "/var/lib/mysql"
+    source = "/home/andy/Media/CS/SysAdmin/DetailDrivenManager/database" # TODO: Change to local PWD directry or docker volume
     type   = "bind"
   }
 
-env = [
-    "POSTGRES_PASSWORD=pass",
-]
+
+  env = [
+    "MYSQL_ROOT_PASSWORD=pass",        # TODO: Better password storage
+    "MYSQL_DATABASE=mydb",             # Initialize database
+    "MYSQL_USER=user",                 # Create a user
+    "MYSQL_PASSWORD=pass"              # Set user password
+  ]
 }
