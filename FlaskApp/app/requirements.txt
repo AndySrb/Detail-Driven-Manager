@@ -9,6 +9,9 @@ colorama==0.4.6 ; python_version >= "3.13" and python_version < "4.0" and platfo
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
 flask-cors==1.10.3 ; python_version >= "3.13" and python_version < "4.0" \
     --hash=sha256:9e6927aa0a46f314bca0ec63eb871cee898a162adfdd5b65224db7a008287423
+flask-mysql==1.6.0 ; python_version >= "3.13" and python_version < "4.0" \
+    --hash=sha256:5a551825342de2edfbc76925a1fb5c0775a1e6296583bc9f510d47908e175497 \
+    --hash=sha256:83de07fe437e6cd127b627a938a07bd76a461445f75661d19e2471d94dafe611
 flask==3.1.0 ; python_version >= "3.13" and python_version < "4.0" \
     --hash=sha256:5f873c5184c897c8d9d1b05df1e3d01b14910ce69607a117bd3277098a5836ac \
     --hash=sha256:d667207822eb83f1c4b50949b1623c8fc8d51f2341d65f72e1a1815397551136
@@ -80,6 +83,9 @@ markupsafe==3.0.2 ; python_version >= "3.13" and python_version < "4.0" \
     --hash=sha256:f3818cb119498c0678015754eba762e0d61e5b52d34c8b13d770f0719f7b1d79 \
     --hash=sha256:f8b3d067f2e40fe93e1ccdd6b2e1d16c43140e76f02fb1319a05cf2b79d99430 \
     --hash=sha256:fcabf5ff6eea076f859677f5f0b6b5c1a51e70a376b0579e0eadef8db48c6b50
+pymysql==1.1.1 ; python_version >= "3.13" and python_version < "4.0" \
+    --hash=sha256:4de15da4c61dc132f4fb9ab763063e693d521a80fd0e87943b9a453dd4c19d6c \
+    --hash=sha256:e127611aaf2b417403c60bf4dc570124aeb4a57f5f37b8e95ae399a42f904cd0
 six==1.17.0 ; python_version >= "3.13" and python_version < "4.0" \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
