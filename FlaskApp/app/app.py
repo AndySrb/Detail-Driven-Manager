@@ -14,21 +14,102 @@ mysql.init_app(app)
 # Set a secret key for encrypting session data
 app.secret_key = 'my_secret_key'
 
-# dictionary to store user and password
-users = {
-    'andy': '1234',
-    'user': 'pass'
-}
-
 """ API CALLS
 """
 
 @app.route('/api/permissions/global/<int:id_user>', methods=['get'])
-def api(id_user):
+def global_premissions(id_user):
     if 'id_user' in session:
-        return jsonify({"error": "Missing 'name' field", "value": id_user}), 400
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        gPremission = session['global_premission'];
+        cursor.execute(f"SELECT modify_users FROM global_premissions WHERE id_premission_level={gPremission}")
+        if cursor.fetchone()[0] == True:
+            cursor.execute(f"SELECT * FROM global_premissions WHERE id_premission_level={id_user}")
+            res = [dict((cursor.description[i][0], value) for i, value in enumerate(row)) for row in cursor.fetchall()]
+            return res, 200
+        return jsonify({"error": "User has no premission to see global premissions for other users", "value": -1}), 401
     else:
-        return jsonify({"error": "Not logged in", "value": id_user}), 400
+        return jsonify({"error": "Not logged in", "value": id_user}), 403
+
+"""
+@app.route('/api/permissions/group/<int:id_user>/<int:id_group>', methods=['get'])
+def api(id_user, id_group):
+    if 'id_user' in session:
+"""
+
+@app.route('/api/create_group/<string:group_name>', methods=['get'])
+def create_group(group_name):
+    if 'id_user' in session:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        id_user = session['id_user']
+
+        gPremission = session['global_premission'];
+        cursor.execute(f"SELECT add_group FROM global_premissions WHERE id_premission_level={gPremission}")
+        res = [dict((cursor.description[i][0], value) for i, value in enumerate(row)) for row in cursor.fetchall()]
+        if res[0]['add_group']:
+            cursor.execute(f'INSERT INTO group_data(group_name, creation_date) VALUES("{group_name}", now() );')
+            cursor.execute(f'INSERT INTO group_premissions VALUES( DEFAULT, {id_user}, LAST_INSERT_ID(), "CREATOR", 1, 1, 1, 1, 1, 1, 1, 1);')
+            conn.commit()
+            return jsonify({"Info": "Group is created", "value": group_name}), 200
+        return jsonify({"error": "You dont have premission to create groups", "value": -1}), 401
+
+    return jsonify({"error": "Not logged in", "value": -1}), 403
+
+
+@app.route('/api/group_list', methods=['get'])
+def group_list():
+    if 'id_user' in session:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+
+        id_user = session['id_user']
+        cursor.execute(f'''SELECT group_data.id_group, group_premissions.id_user, group_premissions.role_name, group_data.group_name, group_data.creation_date
+                       FROM group_data CROSS JOIN group_premissions ON group_data.id_group=group_premissions.id_group
+                       WHERE id_user={id_user}
+                       ''')
+        res = [dict((cursor.description[i][0], value) for i, value in enumerate(row)) for row in cursor.fetchall()]
+        return jsonify(res), 200;
+    return jsonify({"error": "Not logged in", "value": -1}), 403
+
+@app.route('/api/group_remove/<int:id_group>', methods=['get'])
+def group_remove(id_group):
+    if 'id_user' in session:
+        conn = mysql.connect()
+        cursor = conn.cursor()
+        id_user = session['id_user']
+
+        globalPremissionDelete = None;
+        groupPremissionDelete = None;
+
+        gPremission = session['global_premission'];
+        cursor.execute(f"SELECT remove_group FROM global_premissions WHERE id_premission_level={gPremission}")
+        res = [dict((cursor.description[i][0], value) for i, value in enumerate(row)) for row in cursor.fetchall()]
+        globalPremissionDelete = res[0]['remove_group']
+
+        if cursor.execute(f"SELECT remove_group from group_premissions where id_user={id_user} AND id_group={id_group}"):
+            res = [dict((cursor.description[i][0], value) for i, value in enumerate(row)) for row in cursor.fetchall()]
+            groupPremissionDelete = res[0]['remove_group']
+
+        if globalPremissionDelete or groupPremissionDelete:
+            cursor.execute(f"SELECT group_name FROM group_data WHERE id_group={id_group}")
+            groupName = cursor.fetchone()[0]
+            cursor.execute(f"DELETE FROM group_premissions WHERE id_group={id_group}")
+            cursor.execute(f"DELETE FROM group_data WHERE id_group={id_group}")
+            conn.commit()
+            return jsonify({"Info": "Group deleted", "value": groupName}), 200
+
+
+        return jsonify({"error": "Group doesn't exist or you dont have premission", "value": -1}), 200
+    return jsonify({"error": "Not logged in", "value": -1}), 403
+
+
+
+
+
 
 
 
@@ -37,7 +118,8 @@ def delete_session():
     session.pop('id_user', default=None)
     session.pop('username', default=None)
     session.pop('first_name', default=None)
-
+    session.pop('last_name', default=None)
+    session.pop('global_premission', default=None)
     return render_template('login.html')
 
 # To render a login form
@@ -69,6 +151,8 @@ def handle_post():
             session['id_user'] = data[0]
             session['username'] = username
             session['first_name'] = data[3]
+            session['last_name'] = data[4]
+            session['global_premission'] = data[9]
             url = url_for("delete_session")
             return f'<h1>Welcome {username} !!!</h1><a href="{url}">Link Text</a>'
         else:
