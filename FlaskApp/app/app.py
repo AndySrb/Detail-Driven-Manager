@@ -107,12 +107,6 @@ def group_remove(id_group):
     return jsonify({"error": "Not logged in", "value": -1}), 403
 
 
-
-
-
-
-
-
 @app.route('/delete_session')
 def delete_session():
     session.pop('id_user', default=None)
@@ -133,14 +127,34 @@ def view_form():
         return render_template('login.html')
 
 
+@app.route('/login_post', methods=['post'])
+def login_post():
+    data = request.json
+    print(data)
+    username = data['username']
+    password = data['password']
 
+    conn = mysql.connect()
+    cursor = conn.cursor()
+
+    cursor.execute(f"SELECT * FROM users WHERE users.username = '{username}' AND users.password = '{password}';")
+    data = cursor.fetchone()
+    if data:
+        session['id_user'] = data[0]
+        session['username'] = username
+        session['first_name'] = data[3]
+        session['last_name'] = data[4]
+        session['global_premission'] = data[9]
+        return jsonify({"Info": "You logged in", "value": username}), 200
+    else:
+        return jsonify({"error": "Wrong username or password", "value": -1}), 401
 
 @app.route('/handle_post', methods=['post'])
 def handle_post():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        print(username, password)
+        #print(username, password)
 
         conn = mysql.connect()
         cursor = conn.cursor()
